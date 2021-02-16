@@ -26,16 +26,21 @@ class VirtualWindow:
         self.src = src
         self.width = width
         self.height = height
+        self.window_width = 1920
+        self.window_height = 1080
         self.x_nom = 0.5
         self.y_nom = 0.5
+        self.z_nom = 1
         self.src_width = None
         self.src_height = None
         self.x = 0
         self.y = 0
-        self.z = 0
-        self.x0 = 0
-        self.y0 = 0
+        self.z = 1        #m
+        self.x0 = None
+        self.y0 = None
+        self.max_depth = 2
         self.tau = 0.12
+        self.tau_d = 0.25
         self.t = time.time()
         self.camera_on = camera_on
         
@@ -95,7 +100,7 @@ class VirtualWindow:
 
     def play_video(self):
         window = cv2.namedWindow('frame',cv2.WINDOW_NORMAL)
-        cv2.resizeWindow('frame',self.width,self.height)
+        cv2.resizeWindow('frame',self.window_width,self.window_height)
         ret, frame = self.cap.read()
         if ret:
             frame = self.crop(frame)
@@ -104,15 +109,17 @@ class VirtualWindow:
             self.cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
     def crop(self,frame):
-        # TODO make dynamic based off window size of oak
-        if self.x is not None and self.y is not None:
+        # TODO make dynamic based off window size of oak + depth max
+        if self.x is not None and self.y is not None and self.z is not None:
             self.x_nom = self.x / 300                            # normalize
-            self.y_nom = self.y / 300            
+            self.y_nom = self.y / 300
         
+        self.width = int(self.z_nom * self.src_width)
+        self.height = int(self.z_nom * self.src_height)
         x0 = int(self.x_nom * (self.src_width - self.width))     # pixel location 
         y0 = int(self.y_nom * (self.src_height - self.height))
         self.lowpass(x0,y0)
-        
+        print(self.z_nom)
         new_frame = frame[self.y0:self.y0+self.height, self.x0:self.x0+self.width]
         return new_frame
     
@@ -122,15 +129,17 @@ class VirtualWindow:
         self.t = time.time()
 
         a = dt/(self.tau+dt)
-        if self.x0 is not None and self.y0 is not None:
+        az = dt/(self.tau_d + dt)
+        if self.x0 is not None and self.y0 is not None and self.z is not None:
             self.x0 = int(a*x + (1-a)*self.x0)
             self.y0 = int(a*y + (1-a)*self.y0)
+            self.z_nom = az*min(self.z / self.max_depth,1) + (1-az)*self.z_nom
         else:
             self.x0 = x
             self.y0 = y
 
 if __name__ == "__main__":
-    vw = VirtualWindow('resources/AdobeStock_267854166_Video_4K_Preview.mov', 1920, 1080,camera_on=False)
+    vw = VirtualWindow('resources\AdobeStock_267854166_Video_HD_Preview.mov', 1280, 720,camera_on=False)
     vw.stream()
 
 cv2.destroyAllWindows()
