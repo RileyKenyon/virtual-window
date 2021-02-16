@@ -1,12 +1,12 @@
 import cv2
 import depthai
 import sys
-sys.path.append('depthai')
-import depthai_demo
-import consts.resource_paths
+# sys.path.append('depthai')
+# import depthai_demo
+# import consts.resource_paths
 
-sys.path.append('depthai/depthai_helpers')
-import mobilenet_ssd_handler
+# sys.path.append('depthai/depthai_helpers')
+# import mobilenet_ssd_handler
 
 device = depthai.Device('',False)
 p = device.create_pipeline(config={
@@ -24,13 +24,14 @@ p = device.create_pipeline(config={
 if p is None:
     raise RuntimeError("Error initializing pipeline")
 
-nn2depth = True 
-nn_depth = device.get_nn_to_depth_bbox_mapping()
+# # TODO Would be useful for increasing FOV
+# nn2depth = True 
+# nn_depth = device.get_nn_to_depth_bbox_mapping()
 
-def nn_to_depth_coord(x, y, nn2depth):
-    x_depth = int(nn2depth['off_x'] + x * nn2depth['max_w'])
-    y_depth = int(nn2depth['off_y'] + y * nn2depth['max_h'])
-    return x_depth, y_depth
+# def nn_to_depth_coord(x, y, nn2depth):
+#     x_depth = int(nn2depth['off_x'] + x * nn2depth['max_w'])
+#     y_depth = int(nn2depth['off_y'] + y * nn2depth['max_h'])
+#     return x_depth, y_depth
 
 detections = []
 
