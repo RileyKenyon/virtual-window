@@ -137,8 +137,8 @@ class VirtualWindow:
                     y0 = int((1 - self.y_nom) * (self.src_height - self.height))
                     self.lowpass(x0,y0)
 
-            if (self.width > 0) and (self.height > 0):
-                new_frame = frame[self.y0:self.y0+self.height-1, self.x0:self.x0+self.width-1]
+        if np.array([self.x0, self.y0, self.width, self.height]).all():
+            new_frame = frame[self.y0:self.y0+self.height-1, self.x0:self.x0+self.width-1]
         return new_frame
     
     def lowpass(self,x,y):
@@ -157,7 +157,7 @@ class VirtualWindow:
             self.y0 = y
 
 if __name__ == "__main__":
-    vw = VirtualWindow('resources\AdobeStock_267854166_Video_4k_Preview.mov', 1280, 720,camera_on=True,annotate=False)
+    vw = VirtualWindow('resources\AdobeStock_267854166_Video_4k_Preview.mov', 1280, 720,camera_on=False,annotate=False)
     vw.stream()
 
 cv2.destroyAllWindows()
