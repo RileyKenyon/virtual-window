@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import depthai
 import time
+import argparse
 
 device = depthai.Device('',False)
 p = device.create_pipeline(config={
@@ -20,6 +21,18 @@ if p is None:
     raise RuntimeError("Error initializing pipeline")
 
 detections = []
+
+# dictionary for resolutions
+res = {
+    'SD': {
+        'width': 1280,
+        'height': 720
+    },
+    'HD': {
+        'width': 1920,
+        'height': 1080
+    }
+}
 
 class VirtualWindow:
     def __init__(self,src,width,height,camera_on=False,annotate=False):
@@ -45,7 +58,7 @@ class VirtualWindow:
         self.t = time.time()
         self.frame_decimate = 60            # number of frames
         self.frame_count = 0
-        self.deadband = 0                  # px deadband on position
+        self.deadband = 1                  # px deadband on position
         self.camera_on = camera_on
         self.annotate = annotate
         
@@ -112,7 +125,7 @@ class VirtualWindow:
         if ret:
             frame = self.crop(frame)
             frame_end = time.time()
-            label = "fps: {0}".format(1/(frame_end - frame_start))
+            label = "fps: {0}".format(np.floor(1/(frame_end - frame_start)))
             if self.annotate:
                 cv2.putText(frame,label,(20,20),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),1)
             cv2.imshow('frame',frame)
@@ -157,7 +170,18 @@ class VirtualWindow:
             self.y0 = y
 
 if __name__ == "__main__":
-    vw = VirtualWindow('resources\AdobeStock_267854166_Video_4k_Preview.mov', 1280, 720,camera_on=False,annotate=False)
+    # command line arguments
+    parser = argparse.ArgumentParser(description='virtual window')
+    parser.add_argument('--src',type=str, help='video file to play',
+                        default='resources\AdobeStock_267854166_Video_4k_Preview.mov')
+    parser.add_argument('--res', type=str, choices=('SD','HD'),default='SD',
+                        help='resolution of cropped frame')
+    parser.add_argument('--cam',type=bool, default= False,help='show OAK output')
+    parser.add_argument('--fps',type=bool, default= False,help='annotate with FPS')
+    args = parser.parse_args()
+    print(args.res)
+    print(res[args.res]['width'])
+    vw = VirtualWindow(args.src, res[args.res]['width'],res[args.res]['height'],camera_on=args.cam,annotate=args.fps)
     vw.stream()
 
 cv2.destroyAllWindows()
